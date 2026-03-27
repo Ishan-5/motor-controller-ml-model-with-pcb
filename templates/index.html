@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Motor Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .cards {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 10px;
+            width: 150px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+
+        .card h3 {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .card h2 {
+            margin: 5px 0;
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        canvas {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 10px;
+            height: 200px !important;
+        }
+
+        .status-low { color: #22c55e; }
+        .status-medium { color: #f59e0b; }
+        .status-high { color: #ef4444; }
+    </style>
+</head>
+
+<body>
+
+<h1>⚡ Smart Motor ML Dashboard</h1>
+
+<div class="cards">
+    <div class="card">
+        <h3>Current</h3>
+        <h2 id="current">--</h2>
+    </div>
+
+    <div class="card">
+        <h3>Voltage</h3>
+        <h2 id="voltage">--</h2>
+    </div>
+
+    <div class="card">
+        <h3>Temperature</h3>
+        <h2 id="temp">--</h2>
+    </div>
+
+    <div class="card">
+        <h3>Load</h3>
+        <h2 id="prediction">--</h2>
+    </div>
+</div>
+
+<div class="charts">
+    <canvas id="currentChart"></canvas>
+    <canvas id="voltageChart"></canvas>
+    <canvas id="tempChart"></canvas>
+</div>
+
+<script>
+function createChart(ctx, label, color) {
+    return new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: label,
+                data: [],
+                borderColor: color,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: "white" } }
+            },
+            scales: {
+                x: {
+                    ticks: { color: "white" }
+                },
+                y: {
+                    ticks: { color: "white" }
+                }
+            }
+        }
+    });
+}
+
+const currentChart = createChart(document.getElementById('currentChart'), "Current", "#3b82f6");
+const voltageChart = createChart(document.getElementById('voltageChart'), "Voltage", "#22c55e");
+const tempChart = createChart(document.getElementById('tempChart'), "Temperature", "#ef4444");
+
+async function fetchData() {
+    const res = await fetch("/data");
+    const data = await res.json();
+
+    document.getElementById("current").innerText = data.current;
+    document.getElementById("voltage").innerText = data.voltage;
+    document.getElementById("temp").innerText = data.temp;
+
+    let labels = ["LOW", "MEDIUM", "HIGH"];
+    let loadText = labels[data.prediction];
+
+    let predElem = document.getElementById("prediction");
+    predElem.innerText = loadText;
+
+    predElem.className = "";
+    if (data.prediction === 0) predElem.classList.add("status-low");
+    if (data.prediction === 1) predElem.classList.add("status-medium");
+    if (data.prediction === 2) predElem.classList.add("status-high");
+
+    updateChart(currentChart, data.current);
+    updateChart(voltageChart, data.voltage);
+    updateChart(tempChart, data.temp);
+}
+
+function updateChart(chart, value) {
+    chart.data.labels.push("");
+    chart.data.datasets[0].data.push(value);
+
+    if (chart.data.labels.length > 20) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+    }
+
+    chart.update();
+}
+
+setInterval(fetchData, 1000);
+</script>
+
+</body>
+</html>
