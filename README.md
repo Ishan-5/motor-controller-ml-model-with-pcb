@@ -102,7 +102,7 @@ project/
 ## 📸 Screenshots
 
 ### 🔹 PCB 3D View
-![PCB 3D](pcb/pcb_3d.png)
+![PCB 3D](pcb/pcb_3D.png)
 
 ## 🔮 Future Improvements
 
