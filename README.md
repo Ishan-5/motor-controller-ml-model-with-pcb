@@ -97,6 +97,13 @@ project/
 
 ---
 
+---
+
+## 📸 Screenshots
+
+### 🔹 PCB 3D View
+![PCB 3D](pcb/pcb_3d.png)
+
 ## 🔮 Future Improvements
 
 - 🔁 Real ESP32 integration (WiFi + ADC)
